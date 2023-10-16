@@ -41,6 +41,12 @@ def ssim(img1, img2, window_size=11, size_average=True):
     return _ssim(img1, img2, window, window_size, channel, size_average)
 
 def _ssim(img1, img2, window, window_size, channel, size_average=True):
+    if len(img1.shape) == 3 and len(img2.shape) == 3:
+        img1 = img1.unsqueeze(0)
+        img2 = img2.unsqueeze(0)
+        need_reshape = True
+    else:
+        need_reshape = False
     mu1 = F.conv2d(img1, window, padding=window_size // 2, groups=channel)
     mu2 = F.conv2d(img2, window, padding=window_size // 2, groups=channel)
 
@@ -56,6 +62,9 @@ def _ssim(img1, img2, window, window_size, channel, size_average=True):
     C2 = 0.03 ** 2
 
     ssim_map = ((2 * mu1_mu2 + C1) * (2 * sigma12 + C2)) / ((mu1_sq + mu2_sq + C1) * (sigma1_sq + sigma2_sq + C2))
+    
+    if need_reshape:
+        ssim_map = ssim_map.squeeze(0)
 
     if size_average:
         return ssim_map.mean()
